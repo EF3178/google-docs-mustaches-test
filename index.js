@@ -86,19 +86,43 @@ async function gdruncopy(cl, templateFileId){
 
 // Update data in google doc
 async function gdrunupdate(cl, copiedFileID){
-  const gdapi = await google.docs({version:'v1', auth: cl })
-  const opt ={
-      documentId: copiedFileID,
-      resource: {
-        requests,
-      },
-  };
+  const gdapi = await google.docs({version:'v1', auth: cl });
 
+  let findTextToReplacementMap ={"ContratID":"Michel","NomSouscripteur":"Blob"};
+  var requests = [];
+  for (var findText in findTextToReplacementMap) { 
+    var replaceText = findTextToReplacementMap[findText];
+    findText = "{{"+ findText + "}}"
+    console.log(replaceText);
+    console.log(findText);
+    var request = {
+      replaceAllText: {
+        containsText: {
+          text: findText,
+          matchCase: true,
+        },
+        replaceText: replaceText
+      }
+    };
+    
+    console.log(request);
+    requests.push(request);
+
+    console.log(requests);
+};
+const opt ={
+  documentId: copiedFileID,
+  resource: {
+    requests,
+  },
+};
+try {
 let data = await gdapi.documents.batchUpdate(opt);
 console.log(data.data.documentId);
 const updatedID = data.data.documentId;
 gdrunexport(cl, updatedID);
 
+} catch(err) {throw(err)};
 };
 //Export new file as pdf
 async function gdrunexport(cl, updatedFileID){
@@ -113,60 +137,20 @@ async function gdrunexport(cl, updatedFileID){
     if (err) {
       console.log(err);
     } else {
- //     fs.writeFile("file.pdf", Buffer.from(res.data), function(err) {
-      const pdf = Buffer.from(res.data).toString('base64'); //PDF WORKS
-      gdriveapi.files.delete({fileId: updatedFileID});
-       // res.send({'base64' : pdf})
- //     console.log(pdf);
-      
+      fs.writeFile("file.pdf", Buffer.from(res.data), function(err) {
         if (err) {
           return console.log(err);
         } else {
           return console.log("success")
-        }
-//      });
-    }
-  }
-)
-};
-//Export new file as pdf
-/*async function gdrunexport(cl, updatedFileID){
-  const gdriveapi = await google.drive({version:'v3', auth: cl })
- 
-  var dest = fs.createWriteStream('./resume.pdf');
- 
-  const exportedFile = await gdriveapi.files.export({
-    fileId: updatedFileID,
-    mimeType: 'application/pdf'
-    },
-    {responseType: 'stream'});
-  
-    const pdfFile = await new Promise((resolve, reject) => {
-      exportedFile.data
-        .on('error', reject)
-        .pipe(dest)
-        .on('error', reject)
-        .on('finish', resolve);
-    });
-   
-    // Read file and return base64
-      fs.readFile('./resume.pdf', function (err, data) {
-      if (err) throw err;
-      const pdf = data.toString('base64'); //PDF WORKS
-//      console.log(pdf);
-
-      //delete google drive file
- //     files().delete(file.getId()).execute();
-      // delete pdf file
-     fs.unlink('./resumex.pdf', (err) => {
-        if (err) {
-                 console.error(err)
-                 return
-         }});
-         return pdf;
-       // return Base64
+        }});
+      const pdf = Buffer.from(res.data).toString('base64'); //PDF WORKS
+      gdriveapi.files.delete({fileId: updatedFileID});
        // res.send({'base64' : pdf})
-     });
-};*/
+ //     console.log(pdf);
+    };
+        
+//      });
+    
+      }) 
 
-
+};

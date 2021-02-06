@@ -37,16 +37,17 @@ client.authorize(function(err,tokens){
   });
 
 
-let findTextToReplacementMap ={"{{ContratID}}":"Michel","{{NomSouscripteur}}":"Blob"};
 
 async function gdrunupdate(cl, copiedFileID){
   const gdapi = await google.docs({version:'v1', auth: cl });
 
+  let findTextToReplacementMap ={"ContratID":"Michel","NomSouscripteur":"Blob"};
   var requests = [];
-  for (var findText in findTextToReplacementMap) {
-    console.log(findText);
+  for (var findText in findTextToReplacementMap) { 
     var replaceText = findTextToReplacementMap[findText];
+    findText = "{{"+ findText + "}}"
     console.log(replaceText);
+    console.log(findText);
     var request = {
       replaceAllText: {
         containsText: {
