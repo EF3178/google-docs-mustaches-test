@@ -33,34 +33,15 @@ client.authorize(function(err,tokens){
       }
       }
 
-    /*
-    gdruncopy(client, templateFile)
-    .then(gdrunupdate(client, documentCopyId))
-    .then(gdrunexport(client, updatedID)); 
-    console.log('all done !');
 
-
-
-      run();
-    async function run(){
-      try {
-      console.log('run');
-      const copiedFile = await gdruncopy(client, templateFile);
-      const updatedFile = await gdrunupdate(client, copiedFile.documentCopyId);
-      const returnedFile = await gdrunexport(client, updatedFile.updatedID); 
-      }
-       catch (error) {
-      error.message; // "Oops!"
-      }
-       }*/
   }
   });
 
 
 
 
-let NomSouscripteur = 'Alice';
-let ContratID = 'AQ001675- 1675';
+let NomSouscripteur = 'John';
+let ContratID = 'Doe';
 let requests = [
   {
     replaceAllText: {
@@ -97,6 +78,8 @@ async function gdruncopy(cl, templateFileId){
   },async (err, driveResponse) => {
     const documentCopyId = await driveResponse.data.id;
     console.log(documentCopyId);
+
+    // Call run update function
     gdrunupdate(cl, documentCopyId);
   });
 };
@@ -117,9 +100,37 @@ const updatedID = data.data.documentId;
 gdrunexport(cl, updatedID);
 
 };
-
 //Export new file as pdf
 async function gdrunexport(cl, updatedFileID){
+  const gdriveapi = await google.drive({version:'v3', auth: cl });
+  const pdfContentBlob = await gdriveapi.files.export(
+   {
+    fileId: updatedFileID,  // Please set the file ID of Google Docs.
+    mimeType: "application/pdf"
+  },
+  { responseType: "arraybuffer" },
+  (err, res) => {
+    if (err) {
+      console.log(err);
+    } else {
+ //     fs.writeFile("file.pdf", Buffer.from(res.data), function(err) {
+      const pdf = Buffer.from(res.data).toString('base64'); //PDF WORKS
+      gdriveapi.files.delete({fileId: updatedFileID});
+       // res.send({'base64' : pdf})
+ //     console.log(pdf);
+      
+        if (err) {
+          return console.log(err);
+        } else {
+          return console.log("success")
+        }
+//      });
+    }
+  }
+)
+};
+//Export new file as pdf
+/*async function gdrunexport(cl, updatedFileID){
   const gdriveapi = await google.drive({version:'v3', auth: cl })
  
   var dest = fs.createWriteStream('./resume.pdf');
@@ -147,7 +158,7 @@ async function gdrunexport(cl, updatedFileID){
       //delete google drive file
  //     files().delete(file.getId()).execute();
       // delete pdf file
-     fs.unlink(resultat.filename, (err) => {
+     fs.unlink('./resumex.pdf', (err) => {
         if (err) {
                  console.error(err)
                  return
@@ -156,6 +167,6 @@ async function gdrunexport(cl, updatedFileID){
        // return Base64
        // res.send({'base64' : pdf})
      });
-};
+};*/
 
 

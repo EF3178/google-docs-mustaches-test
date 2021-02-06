@@ -33,54 +33,48 @@ client.authorize(function(err,tokens){
       }
       }
 
-    /*
-    gdruncopy(client, templateFile)
-    .then(gdrunupdate(client, documentCopyId))
-    .then(gdrunexport(client, updatedID)); 
-    console.log('all done !');
-
-
-
-      run();
-    async function run(){
-      try {
-      console.log('run');
-      const copiedFile = await gdruncopy(client, templateFile);
-      const updatedFile = await gdrunupdate(client, copiedFile.documentCopyId);
-      const returnedFile = await gdrunexport(client, updatedFile.updatedID); 
-      }
-       catch (error) {
-      error.message; // "Oops!"
-      }
-       }*/
   }
   });
 
 
+let findTextToReplacementMap ={"{{ContratID}}":"Michel","{{NomSouscripteur}}":"Blob"};
 
+async function gdrunupdate(cl, copiedFileID){
+  const gdapi = await google.docs({version:'v1', auth: cl });
 
-let NomSouscripteur = 'Alice';
-let ContratID = 'AQ001675- 1675';
-let requests = [
-  {
-    replaceAllText: {
-      containsText: {
-        text: '{{NomSouscripteur}}',
-        matchCase: true,
-      },
-      replaceText: NomSouscripteur,
-    },
+  var requests = [];
+  for (var findText in findTextToReplacementMap) {
+    console.log(findText);
+    var replaceText = findTextToReplacementMap[findText];
+    console.log(replaceText);
+    var request = {
+      replaceAllText: {
+        containsText: {
+          text: findText,
+          matchCase: true,
+        },
+        replaceText: replaceText
+      }
+    };
+    
+    console.log(request);
+    requests.push(request);
+
+    console.log(requests);
+};
+const opt ={
+  documentId: copiedFileID,
+  resource: {
+    requests,
   },
-  {
-    replaceAllText: {
-      containsText: {
-        text: '{{ContratID}}',
-        matchCase: true,
-      },
-      replaceText: ContratID,
-    },
-  },
-];
+};
+try {
+var response = await gdapi.documents.batchUpdate(opt);
+var replies = response.replies;
+console.log(response);
+return "success"} catch(err){console.log(err)};
+};
+/*
 async function gdrunupdate(cl, copiedFileID){
     const gdapi = await google.docs({version:'v1', auth: cl })
     const opt ={
@@ -91,4 +85,4 @@ async function gdrunupdate(cl, copiedFileID){
     };
   
   let data = await gdapi.documents.batchUpdate(opt);
-  console.log(data.data.documentId)};
+  console.log(data.data.documentId)}*/
