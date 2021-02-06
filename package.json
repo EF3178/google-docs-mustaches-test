@@ -1,0 +1,24 @@
+{
+  "name": "google-mustaches",
+  "version": "1.0.0",
+  "description": "Testing google-docs-mustaches npm package",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "google-docs-mustaches-test"
+  },
+  "keywords": [
+    "google-docs",
+    "templating"
+  ],
+  "author": "Elian Faggion",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "google-docs-mustaches": "^1.2.2",
+    "googleapis": "^67.0.0"
+  }
+}
