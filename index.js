@@ -10,6 +10,8 @@ const client = new google.auth.JWT(
 
 );
 
+
+const templateFile = '1a4wZnQA-g3TsNJEcTzo3zO3zPZWH8DRv1ZlxpGUem4Q'
 client.authorize(function(err,tokens){
 
   if(err){
@@ -17,14 +19,45 @@ client.authorize(function(err,tokens){
     return
   } else {
     console.log('connected');
-   // const runAllAPIs = async function(){
-   // const copiedFile = await gdruncopy(client);
-    //const updatedFile = await gdrunupdate(client, copiedFile);
-    gdrunexport(client);
-    //}
-  }
 
-});
+
+
+    run();
+    async function run(){
+      try {
+    const copiedFile = await gdruncopy(client, templateFile)
+   
+    }
+     catch (error) {
+    error.message; // "Oops!"
+      }
+      }
+
+    /*
+    gdruncopy(client, templateFile)
+    .then(gdrunupdate(client, documentCopyId))
+    .then(gdrunexport(client, updatedID)); 
+    console.log('all done !');
+
+
+
+      run();
+    async function run(){
+      try {
+      console.log('run');
+      const copiedFile = await gdruncopy(client, templateFile);
+      const updatedFile = await gdrunupdate(client, copiedFile.documentCopyId);
+      const returnedFile = await gdrunexport(client, updatedFile.updatedID); 
+      }
+       catch (error) {
+      error.message; // "Oops!"
+      }
+       }*/
+  }
+  });
+
+
+
 
 let NomSouscripteur = 'Alice';
 let ContratID = 'AQ001675- 1675';
@@ -51,7 +84,7 @@ let requests = [
 
 
 //Copy google doc
-async function gdruncopy(cl, newFileId){
+async function gdruncopy(cl, templateFileId){
   const gdriveapi = await google.drive({version:'v3', auth: cl })
 
   var copyTitle = "NewCP";
@@ -59,51 +92,70 @@ async function gdruncopy(cl, newFileId){
     name: copyTitle,
   };
   let copyFile = await gdriveapi.files.copy({
-    fileId: newFileId,
+    fileId: templateFileId,
     resource: newrequest,
-  }, (err, driveResponse) => {
-    let documentCopyId = driveResponse.data.id;
+  },async (err, driveResponse) => {
+    const documentCopyId = await driveResponse.data.id;
     console.log(documentCopyId);
-    return documentCopyId
+    gdrunupdate(cl, documentCopyId);
   });
 };
 
 // Update data in google doc
-async function gdrunupdate(cl){
+async function gdrunupdate(cl, copiedFileID){
   const gdapi = await google.docs({version:'v1', auth: cl })
   const opt ={
-      documentId: '1a4wZnQA-g3TsNJEcTzo3zO3zPZWH8DRv1ZlxpGUem4Q',
+      documentId: copiedFileID,
       resource: {
         requests,
       },
   };
 
-let data = await gdapi.documents.batchUpdate(opt)
-console.log(data)
-}
+let data = await gdapi.documents.batchUpdate(opt);
+console.log(data.data.documentId);
+const updatedID = data.data.documentId;
+gdrunexport(cl, updatedID);
+
+};
 
 //Export new file as pdf
-async function gdrunexport(cl){
+async function gdrunexport(cl, updatedFileID){
   const gdriveapi = await google.drive({version:'v3', auth: cl })
  
-  var fileId = '1a4wZnQA-g3TsNJEcTzo3zO3zPZWH8DRv1ZlxpGUem4Q';
   var dest = fs.createWriteStream('./resume.pdf');
  
   const exportedFile = await gdriveapi.files.export({
-    fileId: fileId,
+    fileId: updatedFileID,
     mimeType: 'application/pdf'
     },
     {responseType: 'stream'});
-    console.log(exportedFile);
-
-    await new Promise((resolve, reject) => {
+  
+    const pdfFile = await new Promise((resolve, reject) => {
       exportedFile.data
         .on('error', reject)
         .pipe(dest)
         .on('error', reject)
         .on('finish', resolve);
     });
- 
+   
+    // Read file and return base64
+      fs.readFile('./resume.pdf', function (err, data) {
+      if (err) throw err;
+      const pdf = data.toString('base64'); //PDF WORKS
+//      console.log(pdf);
+
+      //delete google drive file
+ //     files().delete(file.getId()).execute();
+      // delete pdf file
+     fs.unlink(resultat.filename, (err) => {
+        if (err) {
+                 console.error(err)
+                 return
+         }});
+         return pdf;
+       // return Base64
+       // res.send({'base64' : pdf})
+     });
 };
 
 
