@@ -7,6 +7,7 @@ const client = new google.auth.JWT(
   ['https://www.googleapis.com/auth/documents','https://www.googleapis.com/auth/drive','https://www.googleapis.com/auth/drive.file']
 
 );
+
 client.authorize(function(err,tokens){
 
   if(err){
@@ -14,7 +15,7 @@ client.authorize(function(err,tokens){
     return
   } else {
     console.log('connected');
-    gdrun(client)
+    gdruncopy(client)
   }
 
 });
@@ -41,7 +42,7 @@ let requests = [
     },
   },
 ];
-
+// Update data in google doc
 async function gdrun(cl){
   const gdapi = await google.docs({version:'v1', auth: cl })
   const opt ={
@@ -56,23 +57,23 @@ console.log(data)
 }
 
 
+//Copy google doc
+async function gdruncopy(cl){
+  const gdriveapi = await google.drive({version:'v3', auth: cl })
 
-/*
-google.options({auth: auth});
-google
-    .discoverAPI(
-        'https://docs.googleapis.com/$discovery/rest?version=v1&key={YOUR_API_KEY}')
-    .then(function(docs) {
-      docs.documents.batchUpdate(
-          {
-            documentId: '1yBx6HSnu_gbV2sk1nChJOFo_g3AizBhr-PpkyKAwcTg',
-            resource: {
-              requests,
-            },
-          },
-          (err, {data}) => {
-            if (err) return console.log('The API returned an error: ' + err);
-            console.log(data);
-          });
-    });
-*/
+  var copyTitle = "NewCP";
+  let newrequest = {
+    name: copyTitle,
+  };
+  let copyFile = await gdriveapi.files.copy({
+    fileId: '1a4wZnQA-g3TsNJEcTzo3zO3zPZWH8DRv1ZlxpGUem4Q',
+    resource: newrequest,
+  }, (err, driveResponse) => {
+    let documentCopyId = driveResponse.data.id;
+    console.log(documentCopyId)
+  });
+
+
+}
+
+
